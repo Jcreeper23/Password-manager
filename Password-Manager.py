@@ -17,13 +17,11 @@ def log_exception(exc_type, exc_value, exc_traceback):
 
 sys.excepthook = log_exception
 
-# === Config ===
 DATA_FILE = "passwords.enc"
-ctk.set_appearance_mode("System")  # Light, Dark, System
-ctk.set_default_color_theme("blue")  # Options: blue, green, dark-blue
+ctk.set_appearance_mode("System")
+ctk.set_default_color_theme("blue")
 
 
-# === Helper Functions ===
 
 def generate_key(master_password: str) -> bytes:
     """Derives a Fernet key from the master password"""
@@ -66,7 +64,6 @@ def generate_strong_password(length: int = 16) -> str:
     return "".join(secrets.choice(characters) for _ in range(length))
 
 
-# === GUI Class ===
 
 class PasswordManager(ctk.CTk):
     def __init__(self):
@@ -75,12 +72,11 @@ class PasswordManager(ctk.CTk):
         self.geometry("500x400")
         self.resizable(False, False)
 
-        # Loop to get correct master password or cancel
         while True:
             master_password = ctk.CTkInputDialog(
                 title="Master Password", text="Enter master password:"
             ).get_input()
-            if master_password is None:  # User cancelled
+            if master_password is None:  
                 messagebox.showinfo("Exit", "Master password is required to continue.")
                 self.destroy()
                 return
@@ -91,36 +87,30 @@ class PasswordManager(ctk.CTk):
             self.key = generate_key(master_password)
 
             if os.path.exists(DATA_FILE):
-                # Try to decrypt existing data
                 data = load_data(DATA_FILE, self.key)
                 if data is None:
                     messagebox.showerror("Error", "Incorrect master password, please try again.")
-                    continue  # prompt again
+                    continue 
                 else:
                     self.data = data
                     self.master_password = master_password
                     break
             else:
-                # First time use - set master password and create empty encrypted file
                 self.data = {}
                 self.master_password = master_password
                 save_data(DATA_FILE, self.data, self.key)
                 break
 
-        # Tabs
         self.tabview = ctk.CTkTabview(self, width=480, height=360)
         self.tabview.pack(padx=10, pady=10, expand=True, fill="both")
 
         self.tab_add = self.tabview.add("Add Password")
         self.tab_view = self.tabview.add("Saved Passwords")
 
-        # Add Password Tab
         self.setup_add_tab()
 
-        # Saved Passwords Tab
         self.setup_view_tab()
 
-        # Graceful exit saves data
         self.protocol("WM_DELETE_WINDOW", self.on_close)
 
     def setup_add_tab(self):
@@ -154,7 +144,6 @@ class PasswordManager(ctk.CTk):
         self.refresh_saved_passwords()
 
     def refresh_saved_passwords(self):
-        # Clear previous widgets
         for widget in self.scrollable_frame.winfo_children():
             widget.destroy()
 
@@ -233,7 +222,6 @@ class PasswordManager(ctk.CTk):
         self.destroy()
 
 
-# === Run App ===
 if __name__ == "__main__":
     app = PasswordManager()
     app.mainloop()
